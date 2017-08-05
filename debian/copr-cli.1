@@ -1,0 +1,754 @@
+'\" t
+.\"     Title: copr-cli
+.\"    Author: [see the "AUTHORS" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: 08/06/2017
+.\"    Manual: COPR
+.\"    Source: copr
+.\"  Language: English
+.\"
+.TH "COPR\-CLI" "1" "08/06/2017" "copr" "COPR"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+copr-cli \- command line interface for the Copr service
+.SH "SYNOPSIS"
+.sp
+copr\-cli [\-h] [\-\-version] [\-\-config CONFIG] {list,create,build} \&...
+.SH "DESCRIPTION"
+.sp
+This command allows you to interact with the Copr service from the command line\&.
+.sp
+You need to generate an API key first (see the API KEY section below)\&.
+.SH "OPTIONS"
+.PP
+\-h, \-\-help
+.RS 4
+show this help message and exit
+.RE
+.PP
+\-\-version
+.RS 4
+show the program\(cqs version number and exit
+.RE
+.PP
+\-\-config
+.RS 4
+path to an alternative configuration file (default is ~/\&.config/copr)\&.
+.RE
+.SH "ACTION LIST"
+.PP
+list [username|@groupname]
+.RS 4
+List all the projects of the provided username\&. If no username is provided, then your projects are listed\&.
+.RE
+.PP
+create
+.RS 4
+Create a new project\&.
+.RE
+.PP
+delete
+.RS 4
+Delete an entire project\&.
+.RE
+.PP
+build
+.RS 4
+Build packages for a specified project\&.
+.RE
+.PP
+status
+.RS 4
+Get the status of the build\&.
+.RE
+.PP
+cancel
+.RS 4
+Cancel a build of given id\&.
+.RE
+.PP
+download\-build
+.RS 4
+Download a build to local directory\&.
+.RE
+.PP
+modify
+.RS 4
+Modify existing copr
+.RE
+.PP
+add\-package\-*
+.RS 4
+Add a new package of the specified source type (e\&.g\&. add\-package\-tito)
+.RE
+.PP
+edit\-package\-*
+.RS 4
+Edit source definition and type of an existing package (e\&.g\&. edit\-package\-tito)
+.RE
+.PP
+list\-packages
+.RS 4
+List all packages from a copr in json format
+.RE
+.PP
+list\-package\-names
+.RS 4
+Output just the package names from the given copr
+.RE
+.PP
+get\-package
+.RS 4
+Display details of a single package in json format
+.RE
+.PP
+delete\-package
+.RS 4
+Remove package from a copr and all its builds as well
+.RE
+.PP
+reset\-package
+.RS 4
+Clear source definition of a package and its source type
+.RE
+.PP
+build\-package
+.RS 4
+Build package from its source definition
+.RE
+.PP
+mock\-config
+.RS 4
+Get the mock profile (similar to koji mock\-config)
+.RE
+.PP
+build\-module
+.RS 4
+Build module via Copr MB
+.RE
+.SH "PROJECT ACTIONS"
+.SS "copr\-cli create [options]"
+.sp
+usage: copr\-cli create [\-h] \-\-chroot CHROOTS [\-\-repo REPOS] [\-\-initial\-pkgs PKGS] [\-\-description DESCRIPTION] [\-\-instructions INSTRUCTIONS] [\-\-disable_createrepo DISABLE_CREATEREPO] [\-\-enable\-net {on,off}] [\-\-unlisted\-on\-hp {on,off}] [\-\-persistent] [\-\-auto\-prune {on,off}] name
+.PP
+\-\-chroot
+.RS 4
+Chroot to use for this project\&. Can be specified multiple times, but at least one must be present\&.
+.RE
+.PP
+\-\-repo
+.RS 4
+Repository to add to this project\&. Can be specified multiple times\&.
+.RE
+.PP
+\-\-initial\-pkgs
+.RS 4
+List of packages to build in this new project\&. Can be specified multiple times\&.
+.RE
+.PP
+\-\-description
+.RS 4
+Description of the project\&.
+.RE
+.PP
+\-\-instructions
+.RS 4
+Instructions for the project\&.
+.RE
+.PP
+\-\-disable_createrepo
+.RS 4
+Disables automatic repository metadata generation\&. Accepted values for DISABLE_CREATEREPO: true/false\&.
+.RE
+.PP
+\-\-enable\-net
+.RS 4
+If net should be enabled for builds in this project\&.
+.RE
+.PP
+\-\-unlisted\-on\-hp
+.RS 4
+This project will not be listed on COPR home page\&.
+.RE
+.PP
+\-\-persistent
+.RS 4
+Project and its builds will be undeletable\&. This option can only be specified by a COPR admin\&.
+.RE
+.PP
+\-\-auto\-prune
+.RS 4
+If backend auto\-prunning script should be run for this project\&. This option can only be specified by a COPR admin\&.
+.RE
+.PP
+name
+.RS 4
+Can be just name of the project or in form username/projectname or @groupname/projectname\&.
+.RE
+.SS "copr\-cli modify [options]"
+.sp
+usage: copr\-cli modify [\-h] [\-\-repo REPOS] [\-\-description DESCRIPTION] [\-\-instructions INSTRUCTIONS] [\-\-disable_createrepo DISABLE_CREATEREPO] [\-\-enable\-net {on,off}] [\-\-unlisted\-on\-hp {on,off}] [\-\-auto\-prune {on,off}] name
+.sp
+Alters only specified project property\&.
+.PP
+\-\-repo
+.RS 4
+Repository to add to this project\&. Can be specified multiple times\&.
+.RE
+.PP
+\-\-description
+.RS 4
+Description of the project\&.
+.RE
+.PP
+\-\-instructions
+.RS 4
+Instructions for the project\&.
+.RE
+.PP
+\-\-disable_createrepo
+.RS 4
+Disables automatic repository metadata generation\&. Accepted values for DISABLE_CREATEREPO: true/false\&.
+.RE
+.PP
+\-\-enable\-net
+.RS 4
+If net should be enabled for builds in this project\&.
+.RE
+.PP
+\-\-unlisted\-on\-hp
+.RS 4
+This project will not be listed on COPR home page\&.
+.RE
+.PP
+\-\-auto\-prune
+.RS 4
+If backend auto\-prunning script should be run for this project\&. This option can only be specified by a COPR admin\&.
+.RE
+.PP
+name
+.RS 4
+Can be just name of the project or in form username/projectname or @groupname/projectname\&.
+.RE
+.SH "BUILD ACTIONS"
+.SS "copr\-cli build [options]"
+.sp
+usage: copr\-cli build [\-h] [\-r, \-\-chroot CHROOTS] [\-\-memory MEMORY] [\-\-timeout TIMEOUT] [\-\-nowait] [\-\-background] project PKG [PKG \&...]
+.PP
+\-r, \-\-chroot
+.RS 4
+If you don\(cqt need this build for all the project\(cqs chroots\&. You can use it several times for each chroot you need\&.
+.RE
+.PP
+\-\-memory
+.RS 4
+Override memory for this build\&. This is actually not used and it have no effect\&.
+.RE
+.PP
+\-\-timeout
+.RS 4
+Override timeout for this build\&. This is actually not used and it have no effect\&.
+.RE
+.PP
+\-\-nowait
+.RS 4
+Don\(cqt wait for build completion\&.
+.RE
+.PP
+\-\-background
+.RS 4
+Run the build at a lower priority\&.
+.RE
+.PP
+project
+.RS 4
+The project build the package in\&. This can be a simple name of some of your projects\&. Alternatively, you can specify it as username/project or @groupname/project\&. This way you can build into the project of another user or group, provided you have the permissions to do so\&.
+.RE
+.PP
+PKG
+.RS 4
+This can be either file on your local workstation or URL of the package to build\&. When URL is used, then the package must be placed on a public web or ftp server\&. Note that you cannot combine local file paths and URLs in one command line and local\-file builds are limited to the first specified PKG\&. This limitation comes from the COPR API\&.
+.RE
+.SS "copr\-cli buildpypi [options]"
+.sp
+usage: copr buildpypi [\-h] [\-r, \-\-chroot CHROOTS] [\-\-memory MEMORY] [\-\-timeout TIMEOUT] [\-\-nowait] [\-\-background] [\-\-pythonversions [VERSION [VERSION \&...]]] [\-\-packageversion PYPIVERSION] \-\-packagename PYPINAME project
+.PP
+\-\-pythonversions [VERSION [VERSION \&...]]
+.RS 4
+For what Python versions to build (by default: 3 2)
+.RE
+.PP
+\-\-packageversion PYPIVERSION
+.RS 4
+Version of the PyPI package to be built (by default latest)
+.RE
+.PP
+\-\-packagename PYPINAME
+.RS 4
+Name of the PyPI package to be built, required\&.
+.RE
+.sp
+For the rest of the arguments, see copr\-cli build command above\&.
+.SS "copr\-cli buildtito [options]"
+.sp
+usage: copr buildtito [\-h] [\-\-memory MEMORY] [\-\-timeout TIMEOUT] [\-\-nowait] [\-\-background] [\-r CHROOTS] [\-\-git\-url URL] [\-\-git\-dir DIRECTORY] [\-\-git\-branch BRANCH] [\-\-test] project
+.PP
+\-\-git\-url URL
+.RS 4
+Url to a project managed by Tito, required\&.
+.RE
+.PP
+\-\-git\-dir DIRECTORY
+.RS 4
+Relative path from Git root to directory containing \&.spec file\&.
+.RE
+.PP
+\-\-git\-branch BRANCH
+.RS 4
+Checokut specific branch on the repository\&.
+.RE
+.PP
+\-\-test
+.RS 4
+To build from the last commit instead of the last release tag\&.
+.RE
+.sp
+For the rest of the arguments, see copr\-cli build command above\&.
+.SS "copr\-cli buildmock [options]"
+.sp
+usage: copr buildmock [\-h] [\-\-memory MEMORY] [\-\-timeout TIMEOUT] [\-\-nowait] [\-\-background] [\-r CHROOTS] [\-\-scm\-type TYPE] [\-\-scm\-url URL] [\-\-scm\-branch BRANCH] [\-\-spec FILE] project
+.PP
+\-\-scm\-type TYPE
+.RS 4
+Specify versioning tool, default is
+\fIgit\fR\&.
+.RE
+.PP
+\-\-scm\-url URL
+.RS 4
+Url to a project versioned by Git or SVN, required\&.
+.RE
+.PP
+\-\-scm\-branch BRANCH
+.RS 4
+Checokut specific branch on the repository\&.
+.RE
+.PP
+\-\-spec FILE
+.RS 4
+Relative path from SCM root to \&.spec file, required\&.
+.RE
+.sp
+For the rest of the arguments, see copr\-cli build command above\&.
+.SS "copr\-cli buildfedpkg [options]"
+.sp
+usage: copr buildfedpkg [\-h] [\-\-memory MEMORY] [\-\-timeout TIMEOUT] [\-\-nowait] [\-\-background] [\-r CHROOTS] [\-\-clone\-url URL] [\-\-branch BRANCH] project
+.PP
+\-\-clone\-url URL
+.RS 4
+Specify clone url to the dist\-git project on pkgs\&.fedoraproject\&.org\&.
+.RE
+.PP
+\-\-branch BRANCH
+.RS 4
+Specify branch in the dist\-git project to be be built from\&.
+.RE
+.sp
+For the rest of the arguments, see copr\-cli build command above\&.
+.SS "copr\-cli download\-build [options]"
+.sp
+usage: copr\-cli download\-build [\-h] [\-d, \-\-dest DESTINATION] [\-r, \-\-chroot CHROOT] build_id
+.PP
+build_id
+.RS 4
+Download built packages for build identified by build_id\&.
+.RE
+.PP
+\-d, \-\-dest, \-r, \-\-chroot
+.RS 4
+Fetch only selected chroots\&. Can be specified multiple times\&.\e
+.RE
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+copr\-cli build myproject some\&.src\&.rpm
+copr\-cli build someone_else/project some\&.src\&.rpm
+copr\-cli build \-r fedora\-24\-x86_64 \-r fedora\-24\-i386 "@somegroup/project" some\&.src\&.rpm
+.fi
+.if n \{\
+.RE
+.\}
+.SH "CHROOT ACTIONS"
+.SS "copr\-cli edit\-chroot [options] coprchroot"
+.sp
+usage: copr edit\-chroot [\-h] [\-\-upload\-comps FILEPATH | \-\-delete\-comps] [\-\-packages PACKAGES] [\-\-repos REPOS] coprchroot
+.sp
+Edit the specified coprchroot\&.
+.PP
+coprchroot
+.RS 4
+Path to a project chroot as owner/project/chroot or project/chroot
+.RE
+.PP
+\-\-upload\-comps FILEPATH
+.RS 4
+Filepath to the comps\&.xml file to be uploaded
+.RE
+.PP
+\-\-delete\-comps
+.RS 4
+Deletes already existing comps\&.xml for the chroot
+.RE
+.PP
+\-\-packages PACKAGES
+.RS 4
+space separated string of package names to be added to buildroot (e\&.g\&. "gcc ghc")
+.RE
+.PP
+\-\-repos REPOS
+.RS 4
+space separated string of additional repo urls for chroot (e\&.g\&. "http://foo
+http://bar")
+.RE
+.SS "copr\-cli get\-chroot coprchroot"
+.sp
+usage: copr get\-chroot [\-h] coprchroot
+.sp
+Print info of the given chroot\&.
+.PP
+coprchroot
+.RS 4
+Path to a project chroot as owner/project/chroot or project/chroot
+.RE
+.SH "PACKAGE ACTIONS"
+.SS "copr\-cli add\-package\-tito [options]"
+.sp
+usage: copr add\-package\-tito [\-h] \-\-git\-url URL [\-\-git\-dir DIRECTORY] [\-\-git\-branch BRANCH] [\-\-test {on,off}] \-\-name PKGNAME [\-\-webhook\-rebuild {on,off}] project
+.sp
+Add package of \fITito\fR source type\&.
+.PP
+\-\-git\-url URL
+.RS 4
+URL to a project managed by Tito
+.RE
+.PP
+\-\-git\-dir DIRECTORY
+.RS 4
+Relative path from Git root to directory containing \&.spec file
+.RE
+.PP
+\-\-git\-branch BRANCH
+.RS 4
+Git branch that you want to build from
+.RE
+.PP
+\-\-test {on,off}
+.RS 4
+Build the last commit instead of the last release tag
+.RE
+.PP
+\-\-name PKGNAME
+.RS 4
+Name of the package to be edited or created
+.RE
+.PP
+\-\-webhook\-rebuild {on,off}
+.RS 4
+Enable auto\-rebuilding\&.
+.RE
+.SS "copr\-cli edit\-package\-tito [options]"
+.sp
+usage: copr edit\-package\-tito [\-h] \-\-git\-url URL [\-\-git\-dir DIRECTORY] [\-\-git\-branch BRANCH] [\-\-test {on,off}] \-\-name PKGNAME [\-\-webhook\-rebuild {on,off}] project
+.sp
+Edit source definition and type of an existing package\&. Options are shared with add\-package\-tito\&.
+.SS "copr\-cli add\-package\-pypi [options]"
+.sp
+usage: copr add\-package\-pypi [\-h] [\-\-pythonversions [VERSION [VERSION \&...]]] [\-\-packageversion PYPIVERSION] \-\-packagename PYPINAME \-\-name PKGNAME [\-\-webhook\-rebuild {on,off}] project
+.sp
+Add package of \fIPyPI\fR source type\&.
+.PP
+\-\-pythonversions [VERSION [VERSION \&...]]
+.RS 4
+For what Python versions to build (by default: 3 2)
+.RE
+.PP
+\-\-packageversion PYPIVERSION
+.RS 4
+Version of the PyPI package to be built (by default latest)
+.RE
+.PP
+\-\-packagename PYPINAME
+.RS 4
+Name of the PyPI package to be built, required
+.RE
+.PP
+\-\-name PKGNAME
+.RS 4
+Name of the package to be edited or created
+.RE
+.PP
+\-\-webhook\-rebuild {on,off}
+.RS 4
+Enable auto\-rebuilding
+.RE
+.SS "copr\-cli edit\-package\-pypi [options]"
+.sp
+usage: copr edit\-package\-pypi [\-h] [\-\-pythonversions [VERSION [VERSION \&...]]] [\-\-packageversion PYPIVERSION] \-\-packagename PYPINAME \-\-name PKGNAME [\-\-webhook\-rebuild {on,off}] project
+.sp
+Edit source definition and type of an existing package\&. Options are shared with add\-package\-pypi\&.
+.SS "copr\-cli add\-package\-mockscm [options]"
+.sp
+usage: copr add\-package\-mockscm [\-h] [\-\-scm\-type TYPE] [\-\-scm\-url URL] [\-\-scm\-branch BRANCH] [\-\-spec FILE] \-\-name PKGNAME [\-\-webhook\-rebuild {on,off}] project
+.sp
+Add package of \fIMockSCM\fR source type\&.
+.PP
+\-\-scm\-type TYPE
+.RS 4
+Specify versioning tool, default is
+\fIgit\fR
+.RE
+.PP
+\-\-scm\-url URL
+.RS 4
+Url to a project versioned by Git or SVN, required
+.RE
+.PP
+\-\-scm\-branch BRANCH
+.RS 4
+Branch in the target repository to build from
+.RE
+.PP
+\-\-spec FILE
+.RS 4
+Relative path from SCM root to \&.spec file, required
+.RE
+.PP
+\-\-name PKGNAME
+.RS 4
+Name of the package to be edited or created
+.RE
+.PP
+\-\-webhook\-rebuild {on,off}
+.RS 4
+Enable auto\-rebuilding
+.RE
+.SS "copr\-cli edit\-package\-mockscm [options]"
+.sp
+usage: copr edit\-package\-mockscm [\-h] [\-\-scm\-type TYPE] [\-\-scm\-url URL] [\-\-scm\-branch BRANCH] [\-\-spec FILE] \-\-name PKGNAME [\-\-webhook\-rebuild {on,off}] project
+.sp
+Edit source definition and type of an existing package\&. Options are shared with add\-package\-mockscm\&.
+.SS "copr\-cli add\-package\-rubygems [options]"
+.sp
+usage: copr add\-package\-rubygems [\-h] [\-\-gem GEM] \-\-name PKGNAME [\-\-webhook\-rebuild {on,off}] project
+.sp
+Add package of \fIRubyGems\fR source type\&.
+.PP
+\-\-gem GEM
+.RS 4
+Specify gem name
+.RE
+.PP
+\-\-name PKGNAME
+.RS 4
+Name of the package to be edited or created
+.RE
+.PP
+\-\-webhook\-rebuild {on,off}
+.RS 4
+Enable auto\-rebuilding
+.RE
+.SS "copr\-cli edit\-package\-rubygems [options]"
+.sp
+usage: copr edit\-package\-rubygems [\-h] [\-\-gem GEM] \-\-name PKGNAME [\-\-webhook\-rebuild {on,off}] project
+.sp
+Edit source definition and type of an existing package\&. Options are shared with add\-package\-rubygems\&.
+.SS "copr\-cli list\-packages [options]"
+.sp
+usage: copr list\-packages [\-h] [\-\-with\-latest\-build] [\-\-with\-latest\-succeeded\-build] [\-\-with\-all\-builds] project
+.sp
+Lists all packages in the given project in json format\&.
+.PP
+\-\-with\-latest\-build
+.RS 4
+Also display data related to the latest build for each package\&.
+.RE
+.PP
+\-\-with\-latest\-succeeded\-build
+.RS 4
+Also display data related to the latest succeeded build for each package\&.
+.RE
+.PP
+\-\-with\-all\-builds
+.RS 4
+Also display data related to the builds for each package\&.
+.RE
+.SS "copr\-cli list\-package\-names [options]"
+.sp
+usage: copr list\-package\-names [\-h] project
+.sp
+Only list package names in the given project line by line\&.
+.SS "copr\-cli get\-package [options]"
+.sp
+usage: copr get\-package [\-h] \-\-name PKGNAME [\-\-with\-latest\-build] [\-\-with\-latest\-succeeded\-build] [\-\-with\-all\-builds] project
+.sp
+Similar to list\-packages but returns just a single package directly as json structure (not wrapped in a list)\&.
+.SS "copr\-cli delete\-package [options]"
+.sp
+usage: copr delete\-package [\-h] \-\-name PKGNAME project
+.sp
+Deletes package and all its builds from the given project\&.
+.SS "copr\-cli reset\-package [options]"
+.sp
+usage: copr reset\-package [\-h] \-\-name PKGNAME project
+.sp
+Clears default source of a package and its source type (all the package settings are lost after invoking this!)\&.
+.SS "copr\-cli build\-package [options]"
+.sp
+usage: copr build\-package [\-h] [\-\-memory MEMORY] [\-\-timeout TIMEOUT] [\-\-nowait] [\-r CHROOTS] \-\-name PKGNAME project
+.sp
+Creates a new build of the given package from its source definition\&.
+.PP
+\-\-name PKGNAME
+.RS 4
+Name of a package to be built
+.RE
+.sp
+For the rest of the arguments, see copr\-cli build command above\&.
+.SS "copr\-cli mock\-config [options]"
+.sp
+usage: copr mock\-config [\-h] project chroot
+.sp
+Get the mock profile (similar to koji mock\-config), print it to standard output\&. The configuration can be slightly different from the real mock configuration used by Copr Builders, but should be similar enough for basic debugging (e\&.g\&. by mock \-\-shell)\&.
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+copr\-cli add\-package\-tito myproject \-\-name pkgname \-\-git\-url http://github\&.com/clime/example\&.git \-\-test on
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+copr\-cli get\-package myproject \-\-name pkgname
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+copr\-cli build\-package myproject \-\-name pkgname \-\-nowait \-\-timeout 10000 \-r fedora\-23\-x86_64
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+copr\-cli delete\-package myproject \-\-name pkgname
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+copr\-cli mock\-config myproject fedora\-rawhide\-x86_64
+.fi
+.if n \{\
+.RE
+.\}
+.SH "MODULE ACTIONS"
+.SS "copr\-cli build\-module [options]"
+.sp
+usage: copr build\-module [\-h] [\-\-url URL] [\-\-token TOKEN] [copr]
+.sp
+Build module via Copr MBS
+.sp
+\-\-url URL: SCM with modulemd file in yaml format
+.sp
+\-\-yaml YAML: Path to modulemd file in yaml format
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+copr\-cli build\-module \-\-url git://pkgs\&.stg\&.fedoraproject\&.org/modules/testmodule\&.git?#620ec77
+.fi
+.if n \{\
+.RE
+.\}
+.SH "EXIT STATUS"
+.sp
+Normally, the exit code is 0 when everything goes well\&. But if not, we could get: 1 \- Bad request like wrong project name, insufficient rights etc\&. Also might happen when user interrupts the operation when they shouldn\(cqt\&. 2 \- Wrong arguments given\&. 3 \- Bad or no configuration\&. 4 \- Build fails when Cli is waiting for the result\&. 5 \- Communication error between Cli and server\&. This issue probably means bug and should be reported\&.
+.SH "API KEY"
+.sp
+Visit the page https://copr\&.fedoraproject\&.org/api/ to obtain an API token\&. This token must be saved in the file ~/\&.config/copr in the following format:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+[copr\-cli]
+username = msuchy
+login = Y57wcg==##fkfaxbkjhuoiebfafadl
+token = vbfseelqdebzedukgombekmuvbkqwo
+copr_url = https://copr\&.fedoraproject\&.org
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Be aware that API tokens have an expiration date\&. The expiration date for your token is listed on the /api page\&.
+.SH "USING DIFFERENT COPR INSTANCE"
+.sp
+If you plan to run copr client against non\-default Copr instance, the API token is available on the http://YOUR\&.COPR\&.URL/api/ page\&. You can either replace your default ~/\&.config/copr configuration file, or rather use alternative file with a shell alias
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+alias your_copr=\*(Aqcopr \-\-config ~/\&.config/your\-copr\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+inserted into your profile\&.
+.SH "AUTHORS"
+.sp
+Miroslav Suchý <msuchy@redhat\&.com>, clime <clime@redhat\&.com>
