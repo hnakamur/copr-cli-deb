@@ -14,7 +14,7 @@ Homepage: https://pagure.io/copr/copr
 #Vcs-Git: https://pagure.io/copr/copr.git
 #Vcs-Browser: https://pagure.io/copr/copr/blob/master/f/cli
 
-Package: python2-copr-cli
+Package: python-copr-cli
 Architecture: all
 Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends},
  python-simplejson, python-jinja2
