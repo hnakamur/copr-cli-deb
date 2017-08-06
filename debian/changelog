@@ -1,0 +1,5 @@
+copr-cli (1.61-1hnakamur1) xenial; urgency=medium
+
+  * Initial release for upstream 1.61
+
+ -- Hiroaki Nakamura <hnakamur@gmail.com>  Sun, 06 Aug 2017 08:23:33 +0900
