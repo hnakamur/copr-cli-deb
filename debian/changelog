@@ -1,3 +1,10 @@
+copr-cli (1.67-1ppa1) bionic; urgency=medium
+
+  * New upstream version 1.67
+  * Change target to Ubuntu 18.04
+
+ -- Hiroaki Nakamura <hnakamur@gmail.com>  Tue, 01 May 2018 11:32:39 +0900
+
 copr-cli (1.61-1hnakamur1) xenial; urgency=medium
 
   * Initial release for upstream 1.61
