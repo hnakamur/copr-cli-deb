@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 import os
 import re
@@ -158,32 +157,43 @@ class Commands(object):
         except KeyboardInterrupt:
             pass
 
+    def action_whoami(self, args):
+        """
+        Simply print out the current user as defined in copr config.
+        """
+        print(self.client.username)
+
     @requires_api_auth
     def action_build(self, args):
         """ Method called when the 'build' action has been selected by the
         user.
 
         :param args: argparse arguments provided by the user
-
         """
+        self.client.authentication_check()
+
         bar = None
         progress_callback = None
+        builds = []
 
-        if os.path.exists(args.pkgs[0]):
-            bar = ProgressBar(max=os.path.getsize(args.pkgs[0]))
+        for pkg in args.pkgs:
+            if os.path.exists(pkg):
+                bar = ProgressBar(max=os.path.getsize(pkg))
 
-            # pylint: disable=function-redefined
-            def progress_callback(monitor):
-                bar.next(n=8192)
+                # pylint: disable=function-redefined
+                def progress_callback(monitor):
+                    bar.next(n=8192)
 
-            print('Uploading package {0}'.format(args.pkgs[0]))
+                print('Uploading package {0}'.format(pkg))
 
-        data = {
-            "pkgs": args.pkgs,
-            "progress_callback": progress_callback,
-        }
+            data = {
+                "pkgs": [pkg],
+                "progress_callback": progress_callback,
+            }
 
-        return self.process_build(args, self.client.create_new_build, data, bar=bar)
+            builds.append(self.process_build(args, self.client.create_new_build, data, bar=bar))
+
+        return builds
 
     @requires_api_auth
     def action_build_pypi(self, args):
@@ -232,6 +242,23 @@ class Commands(object):
         return self.process_build(args, self.client.create_new_build_mock, data)
 
     @requires_api_auth
+    def action_build_scm(self, args):
+        """
+        Method called when the 'buildscm' action has been selected by the user.
+
+        :param args: argparse arguments provided by the user
+        """
+        data = {
+            "clone_url": args.clone_url,
+            "committish": args.committish,
+            "subdirectory": args.subdirectory,
+            "spec": args.spec,
+            "scm_type": args.scm_type,
+            "srpm_build_method": args.srpm_build_method,
+        }
+        return self.process_build(args, self.client.create_new_build_scm, data)
+
+    @requires_api_auth
     def action_build_rubygems(self, args):
         """
         Method called when the 'buildgem' action has been selected by the user.
@@ -240,6 +267,21 @@ class Commands(object):
         """
         data = {"gem_name": args.gem_name}
         return self.process_build(args, self.client.create_new_build_rubygems, data)
+
+    @requires_api_auth
+    def action_build_custom(self, args):
+        """
+        Method called when 'buildcustom' has been selected by the user.
+
+        :param args: argparse arguments provided by the user
+        """
+        data = {
+            'script': ''.join(args.script.readlines()),
+        }
+        for arg in ['script_chroot', 'script_builddeps',
+                'script_resultdir']:
+            data[arg] = getattr(args, arg)
+        return self.process_build(args, self.client.create_new_build_custom, data)
 
     @requires_api_auth
     def action_build_distgit(self, args):
@@ -288,7 +330,8 @@ class Commands(object):
             unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
             enable_net=ON_OFF_MAP[args.enable_net],
             persistent=args.persistent,
-            auto_prune=ON_OFF_MAP[args.auto_prune]
+            auto_prune=ON_OFF_MAP[args.auto_prune],
+            use_bootstrap_container=ON_OFF_MAP[args.use_bootstrap_container],
         )
         print(result.message)
 
@@ -306,7 +349,9 @@ class Commands(object):
             repos=args.repos, disable_createrepo=args.disable_createrepo,
             unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
             enable_net=ON_OFF_MAP[args.enable_net],
-            auto_prune=ON_OFF_MAP[args.auto_prune]
+            auto_prune=ON_OFF_MAP[args.auto_prune],
+            use_bootstrap_container=ON_OFF_MAP[args.use_bootstrap_container],
+            chroots=args.chroots,
         )
 
     @requires_api_auth
@@ -493,6 +538,25 @@ class Commands(object):
         print(result.message)
 
     @requires_api_auth
+    def action_add_or_edit_package_scm(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = {
+            "package_name": args.name,
+            "clone_url": args.clone_url,
+            "committish": args.committish,
+            "subdirectory": args.subdirectory,
+            "spec": args.spec,
+            "scm_type": args.scm_type,
+            "srpm_build_method": args.srpm_build_method,
+            "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
+        }
+        if args.create:
+            result = self.client.add_package_scm(ownername=ownername, projectname=projectname, **data)
+        else:
+            result = self.client.edit_package_scm(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
+
+    @requires_api_auth
     def action_add_or_edit_package_rubygems(self, args):
         ownername, projectname = parse_name(args.copr)
         data = {
@@ -504,6 +568,23 @@ class Commands(object):
             result = self.client.add_package_rubygems(ownername=ownername, projectname=projectname, **data)
         else:
             result = self.client.edit_package_rubygems(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
+
+    @requires_api_auth
+    def action_add_or_edit_package_custom(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = {
+            "package_name": args.name,
+            "script": ''.join(args.script.readlines()),
+            "script_chroot": args.script_chroot,
+            "script_builddeps": args.script_builddeps,
+            "script_resultdir": args.script_resultdir,
+            "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
+        }
+        if args.create:
+            result = self.client.add_package_custom(ownername=ownername, projectname=projectname, **data)
+        else:
+            result = self.client.edit_package_custom(ownername=ownername, projectname=projectname, **data)
         print(result.message)
 
     def action_list_packages(self, args):
@@ -571,7 +652,7 @@ class Commands(object):
         """
         Build module via Copr MBS
         """
-        ownername, projectname = parse_name(args.copr or "")
+        ownername, projectname = parse_name(args.copr)
         modulemd = open(args.yaml, "rb") if args.yaml else args.url
         response = self.client.build_module(modulemd, ownername, projectname)
         print(response.message if response.output == "ok" else response.error)
@@ -602,6 +683,12 @@ def setup_parser():
     #########################################################
     ###                    Project options                ###
     #########################################################
+
+    parser_whoami = subparsers.add_parser(
+        "whoami",
+        help="Print username that the client authenticates with against copr-frontend"
+    )
+    parser_whoami.set_defaults(func="action_whoami")
 
     # create the parser for the "list" command
     parser_list = subparsers.add_parser(
@@ -657,12 +744,16 @@ def setup_parser():
     parser_create.add_argument("--auto-prune", choices=["on", "off"], default="on",
                                help="If auto-deletion of project's obsoleted builds should be enabled (default is on).\
                                This option can only be specified by a COPR admin.")
+    parser_create.add_argument("--use-bootstrap", choices=["on", "off"], dest="use_bootstrap_container",
+                               help="If mock bootstrap container is used to initialize the buildroot.")
     parser_create.set_defaults(func="action_create")
 
     # create the parser for the "modify_project" command
     parser_modify = subparsers.add_parser("modify", help="Modify existing copr")
 
     parser_modify.add_argument("name", help="The name of the copr to modify")
+    parser_modify.add_argument("--chroot", dest="chroots", action="append",
+                               help="Chroot to use for this copr")
     parser_modify.add_argument("--description",
                                help="Description of the copr")
     parser_modify.add_argument("--instructions",
@@ -678,6 +769,8 @@ def setup_parser():
     parser_modify.add_argument("--auto-prune", choices=["on", "off"],
                                help="If auto-deletion of project's obsoleted builds should be enabled.\
                                This option can only be specified by a COPR admin.")
+    parser_modify.add_argument("--use-bootstrap", choices=["on", "off"], dest="use_bootstrap_container",
+                               help="If mock bootstrap container is used to initialize the buildroot.")
     parser_modify.set_defaults(func="action_modify_project")
 
     # create the parser for the "delete" command
@@ -723,6 +816,21 @@ def setup_parser():
     parser_mockscm_args_parent.add_argument("--spec", dest="spec", metavar="FILE",
                                             help="relative path from SCM root to .spec file, required")
 
+    parser_scm_args_parent = argparse.ArgumentParser(add_help=False)
+    parser_scm_args_parent.add_argument("--clone-url", required=True,
+                                        help="clone url to a project versioned by Git or SVN, required")
+    parser_scm_args_parent.add_argument("--commit", dest="committish", default="",
+                                        help="branch name, tag name, or git hash to be built")
+    parser_scm_args_parent.add_argument("--subdir", dest="subdirectory", default="",
+                                        help="relative path from the repo root to the package content")
+    parser_scm_args_parent.add_argument("--spec", default="",
+                                        help="relative path from the subdirectory to the .spec file")
+    parser_scm_args_parent.add_argument("--type", dest="scm_type", choices=["git", "svn"], default="git",
+                                        help="Specify versioning tool. Default is 'git'.")
+    parser_scm_args_parent.add_argument("--method", dest="srpm_build_method", default="rpkg",
+                                        choices=["rpkg", "tito", "tito_test", "make_srpm"],
+                                        help="Srpm build method. Default is 'rpkg'.")
+
     parser_rubygems_args_parent = argparse.ArgumentParser(add_help=False)
     parser_rubygems_args_parent.add_argument("--gem", metavar="GEM", dest="gem_name",
                                              help="Specify gem name")
@@ -732,6 +840,22 @@ def setup_parser():
                                              help="Specify clone url for the distgit repository")
     parser_distgit_args_parent.add_argument("--branch", metavar="BRANCH", dest="branch",
                                              help="Specify branch to be used")
+
+    parser_custom_args_parent = argparse.ArgumentParser(add_help=False)
+    parser_custom_args_parent.add_argument(
+            '--script', required=True,
+            type=argparse.FileType('r'),
+            help='text file (script) to be used to prepare the sources')
+    parser_custom_args_parent.add_argument(
+            '--script-chroot',
+            help='mock chroot to build sources for the SRPM in')
+    parser_custom_args_parent.add_argument(
+            '--script-builddeps',
+            help='space separated list of packages needed to build the sources')
+    parser_custom_args_parent.add_argument(
+            '--script-resultdir',
+            help='where SCRIPT generates the result, relatively to script\'s '
+                 '$PWD (defaults to \'.\')')
 
     #########################################################
     ###                    Build options                  ###
@@ -769,20 +893,32 @@ def setup_parser():
                                                   help="Build gem from rubygems.org to a specified copr")
     parser_build_rubygems.set_defaults(func="action_build_rubygems")
 
+    # create the parser for the "buildcustom" command
+    parser_build_custom = subparsers.add_parser(
+            "buildcustom",
+            parents=[parser_custom_args_parent, parser_build_parent],
+            help="Build packages from SRPM generated by custom script")
+    parser_build_custom.set_defaults(func="action_build_custom")
+
     # create the parser for the "buildfedpkg" command
     parser_build_distgit = subparsers.add_parser("buildfedpkg", parents=[parser_distgit_args_parent, parser_build_parent],
-                                                  help="Build package from pkgs.fedoraproject.org")
+                                                  help="DEPRECATED. Use SCM source type instead.")
     parser_build_distgit.set_defaults(func="action_build_distgit")
 
     # create the parser for the "buildtito" command
     parser_build_tito = subparsers.add_parser("buildtito", parents=[parser_tito_args_parent, parser_build_parent],
-                                              help="submit a build from Git repository via Tito to a specified copr")
+                                              help="DEPRECATED. Use SCM source type instead.")
     parser_build_tito.set_defaults(func="action_build_tito")
 
     # create the parser for the "buildmock" command
     parser_build_mock = subparsers.add_parser("buildmock", parents=[parser_mockscm_args_parent, parser_build_parent],
-                                              help="submit a build from SCM repository via Mock to a specified copr")
+                                              help="DEPRECATED. Use SCM source type instead.")
     parser_build_mock.set_defaults(func="action_build_mock")
+
+    # create the parser for the "buildscm" command
+    parser_build_scm = subparsers.add_parser("buildscm", parents=[parser_scm_args_parent, parser_build_parent],
+                                              help="Builds package from Git/DistGit/SVN repository.")
+    parser_build_scm.set_defaults(func="action_build_scm")
 
     # create the parser for the "status" command
     parser_status = subparsers.add_parser("status", help="Get build status of build specified by its ID")
@@ -856,12 +992,12 @@ def setup_parser():
 
     # Tito edit/create
     parser_add_package_tito = subparsers.add_parser("add-package-tito",
-                                                    help="Creates a new Tito package",
+                                                    help="DEPRECATED. Use SCM source type instead.",
                                                     parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
     parser_add_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=True)
 
     parser_edit_package_tito = subparsers.add_parser("edit-package-tito",
-                                                     help="Edits an existing Tito package",
+                                                     help="DEPRECATED. Use SCM source type instead.",
                                                      parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=False)
 
@@ -878,14 +1014,25 @@ def setup_parser():
 
     # MockSCM edit/create
     parser_add_package_mockscm = subparsers.add_parser("add-package-mockscm",
-                                                       help="Creates a new Mock-SCM package",
+                                                       help="DEPRECATED. Use SCM source type instead.",
                                                        parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
     parser_add_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=True)
 
     parser_edit_package_mockscm = subparsers.add_parser("edit-package-mockscm",
-                                                        help="Edits an existing Mock-SCM package",
+                                                        help="DEPRECATED. Use SCM source type instead.",
                                                         parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=False)
+
+    # SCM edit/create
+    parser_add_package_scm = subparsers.add_parser("add-package-scm",
+                                                       help="Creates a new SCM package.",
+                                                       parents=[parser_scm_args_parent, parser_add_or_edit_package_parent])
+    parser_add_package_scm.set_defaults(func="action_add_or_edit_package_scm", create=True)
+
+    parser_edit_package_scm = subparsers.add_parser("edit-package-scm",
+                                                        help="Edits an existing SCM package.",
+                                                        parents=[parser_scm_args_parent, parser_add_or_edit_package_parent])
+    parser_edit_package_scm.set_defaults(func="action_add_or_edit_package_scm", create=False)
 
     # Rubygems edit/create
     parser_add_package_rubygems = subparsers.add_parser("add-package-rubygems",
@@ -894,9 +1041,25 @@ def setup_parser():
     parser_add_package_rubygems.set_defaults(func="action_add_or_edit_package_rubygems", create=True)
 
     parser_edit_package_rubygems = subparsers.add_parser("edit-package-rubygems",
-                                                         help="Edits a new RubyGems package",
+                                                         help="Edits an existing RubyGems package",
                                                          parents=[parser_rubygems_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_rubygems.set_defaults(func="action_add_or_edit_package_rubygems", create=False)
+
+    # Custom build method - edit/create package
+    parser_add_package_custom = subparsers.add_parser(
+            "add-package-custom",
+            help="Creates a new package where sources are built by custom script",
+            parents=[parser_custom_args_parent, parser_add_or_edit_package_parent])
+    parser_add_package_custom.set_defaults(
+            func="action_add_or_edit_package_custom",
+            create=True)
+    parser_edit_package_custom = subparsers.add_parser(
+            "edit-package-custom",
+            help="Edits an existing Custom package",
+            parents=[parser_custom_args_parent, parser_add_or_edit_package_parent])
+    parser_edit_package_custom.set_defaults(
+            func="action_add_or_edit_package_custom",
+            create=False)
 
     # package listing
     parser_list_packages = subparsers.add_parser("list-packages",
@@ -964,7 +1127,7 @@ def setup_parser():
 
     # module building
     parser_build_module = subparsers.add_parser("build-module", help="Builds a given module in Copr")
-    parser_build_module.add_argument("copr", help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.", nargs="?")
+    parser_build_module.add_argument("copr", help="The copr repo to build module in. Can be just name of project or even in format owner/project.")
     parser_build_module_mmd_source = parser_build_module.add_mutually_exclusive_group(required=True)
     parser_build_module_mmd_source.add_argument("--url", help="SCM with modulemd file in yaml format")
     parser_build_module_mmd_source.add_argument("--yaml", help="Path to modulemd file in yaml format")
