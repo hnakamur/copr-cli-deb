@@ -1,3 +1,0 @@
-[console_scripts]
-copr-cli = copr_cli.main:main
-

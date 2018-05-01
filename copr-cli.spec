@@ -7,16 +7,16 @@
 %endif
 %endif
 
-%if 0%{?fedora} >= 24
+%if 0%{?fedora} >= 26 || 0%{?rhel} >= 8
 %global use_python3 1
+%global __python %{__python3}
 %endif
 
 Name:       copr-cli
-Version:    1.61
+Version:    1.67
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
-Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
 # Source is created by
@@ -34,6 +34,9 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-copr
 BuildRequires: python3-pylint
+BuildRequires: python3-pytest
+BuildRequires: python3-simplejson
+BuildRequires: python3-jinja2
 Requires:   python3-setuptools
 Requires:   python3-copr >= 1.63
 Requires:   python3-simplejson
@@ -46,23 +49,28 @@ BuildRequires: python-copr
 Requires:   python-setuptools
 Requires:   python-copr >= 1.63
 Requires:   python-simplejson
-%if 0%{?fedora} > 23
-Requires:   python2-jinja2
-%else
 Requires:   python-jinja2
+
+%if 0%{?rhel} > 6
+BuildRequires: pytest
+BuildRequires: python-simplejson
+BuildRequires: python-jinja2
+BuildRequires: python-mock
+
+Requires:   python-progress
 %endif
-%if 0%{?fedora}
-Recommends: python-progress
+
 %endif
-%endif
+
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
 
-Requires:   wget
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 Requires:   python-argparse
 %endif
+
+Requires:   wget
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -90,9 +98,6 @@ only.
 %if 0%{?use_python3}
 %{__python3} setup.py build
 %else
-for file in copr_cli/main.py copr_cli/__init__.py setup.py; do
-  sed -i 1"s|#!/usr/bin/python3 |#!/usr/bin/python |" $file
-done
 %{__python2} setup.py build
 %endif
 
@@ -116,11 +121,15 @@ install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 
 %check
-%if 0%{?with_python3}
+%if 0%{?use_python3}
 python3-pylint ./copr_cli/*.py || :
+%{__python3} -m pytest tests
+%else
+%if 0%{?rhel} > 6
+# elif because we need: from _pytest.capture import capsys
+%{__python2} -m pytest tests
 %endif
-
-./run_tests.sh || : 
+%endif
 
 %files
 %{!?_licensedir:%global license %doc}
@@ -144,6 +153,37 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Fri Feb 23 2018 clime <clime@redhat.com> 1.67-1
+- remove Group tag
+
+* Mon Feb 19 2018 clime <clime@redhat.com> 1.66-1
+- Shebangs cleanup
+- fix deps in spec
+- allow running tests only for epel7
+- tests also for python2 during builds
+- new custom source method
+- require to specify project when building module
+
+* Thu Nov 09 2017 clime <clime@redhat.com> 1.65-1
+- allow to set use_bootstrap_container via API
+
+* Wed Oct 18 2017 clime <clime@redhat.com> 1.64-1
+- add SCM api interface
+- deprecate tito and mockscm methods
+
+* Fri Sep 15 2017 clime <clime@redhat.com> 1.63-1
+- fix unittests
+- run tests with python3
+- #130 update requirements
+- #125 copr build copr pkgs [pkgs ...] builds only the first SRPM
+- #112 [RFE] copr-cli whoami
+- Bug 1431035 - coprs should check credentials before uploading
+  source rpm
+- Spelling fixes
+
+* Fri Aug 11 2017 clime <clime@redhat.com> 1.62-1
+- allow to modify copr chroots with copr modify cmd
+
 * Fri Jul 14 2017 clime <clime@redhat.com> 1.61-1
 - Bug 1399817 - copr --version does not print version info
 
@@ -359,7 +399,7 @@ python3-pylint ./copr_cli/*.py || :
 - 1063311 - admin should be able to delete task
 - [frontend] Stray end tag h4.
 - [frontend] another s/coprs/projects/ rename
-- [frontend] provide info about last successfull build
+- [frontend] provide info about last successful build
 - [spec] rhel5 needs group definition even in subpackage
 - [frontend] move 'you agree' text to dd
 - [frontend] add margin to chroots-set
@@ -428,7 +468,7 @@ python3-pylint ./copr_cli/*.py || :
 - add build deletion
 - 1044158 - do not require fas username prior to login
 - replace http with https in copr-cli and in generated repo file
-- [cli] UX changes - explicitely state that pkgs is URL
+- [cli] UX changes - explicitly state that pkgs is URL
 - 1053142 - only build copr-cli on el6
 - [frontend] correctly handle mangled chroot
 - [frontend] do not traceback when user malform url
@@ -449,7 +489,7 @@ python3-pylint ./copr_cli/*.py || :
 
 * Wed Jan 08 2014 Miroslav Suchý <msuchy@redhat.com> 1.21-1
 - 1049460 - correct error message
-- [cron] manualy clean /var/tmp after createrepo
+- [cron] manually clean /var/tmp after createrepo
 
 * Wed Jan 08 2014 Miroslav Suchý <msuchy@redhat.com> 1.20-1
 - [cli] no need to set const with action=store_true

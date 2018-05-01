@@ -145,6 +145,7 @@ Can be just name of the project or in form username/projectname or @groupname/pr
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr-cli modify [-h] [--repo REPOS]
+                       [--chroot CHROOTS]
                        [--description DESCRIPTION]
                        [--instructions INSTRUCTIONS]
                        [--disable_createrepo DISABLE_CREATEREPO]
@@ -157,6 +158,12 @@ Alters only specified project property.
 
 --repo::
 Repository to add to this project. Can be specified multiple times.
+
+--chroot::
+Chroot to use for this project. Can be specified multiple times.
+When this option is not used, chroots in the project remain unchanged.
+Once you specify a chroot, it is going to be enabled in the project, but
+current chroots will not be preserved if they are not specified.
 
 --description::
 Description of the project.
@@ -247,6 +254,8 @@ usage: copr buildtito [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
                       [--git-branch BRANCH] [--test]
                       project
 
+Deprecated by SCM source type.
+
 --git-url URL::
 Url to a project managed by Tito, required.
 
@@ -272,6 +281,8 @@ usage: copr buildmock [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
                       [--scm-branch BRANCH] [--spec FILE]
                       project
 
+Deprecated by SCM source type.
+
 --scm-type TYPE::
 Specify versioning tool, default is 'git'.
 
@@ -296,11 +307,47 @@ usage: copr buildfedpkg [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
                       [-r CHROOTS] [--clone-url URL] [--branch BRANCH]
                       project
 
+Deprecated by SCM source type.
+
 --clone-url URL::
 Specify clone url to the dist-git project on pkgs.fedoraproject.org.
 
 --branch BRANCH::
 Specify branch in the dist-git project to be be built from.
+
+
+For the rest of the arguments, see `copr-cli build` command above.
+
+
+`copr-cli buildscm [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr buildscm [-h] --clone-url CLONE_URL [--commit COMMITTISH]
+                     [--subdir SUBDIRECTORY] [--spec SPEC] [--type {git,svn}]
+                     [--method {rpkg,tito,tito_test,make_srpm}]
+                     [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+                     [-r CHROOTS] [--background]
+                     copr
+
+Build package from a Git/DistGit/SVN repository.
+
+--clone-url CLONE_URL::
+clone url to a project versioned by Git or SVN, required
+
+--commit COMMITISH::
+branch name, tag name, or git hash to be built
+
+--subdir SUBDIRECTORY::
+relative path from the repo root to the package content
+
+--spec SPEC::
+relative path from the subdirectory to the .spec file
+
+--type TYPE::
+Specify versioning tool. Default is 'git'.
+
+--method METHOD::
+Srpm build method. Default is 'rpkg'.
 
 
 For the rest of the arguments, see `copr-cli build` command above.
@@ -379,7 +426,7 @@ usage: copr add-package-tito [-h] --git-url URL [--git-dir DIRECTORY]
                              PKGNAME [--webhook-rebuild {on,off}]
                              project
 
-Add package of 'Tito' source type.
+Deprecated by SCM source type.
 
 --git-url URL::
 URL to a project managed by Tito
@@ -408,7 +455,7 @@ usage: copr edit-package-tito [-h] --git-url URL [--git-dir DIRECTORY]
                               PKGNAME [--webhook-rebuild {on,off}]
                               project
 
-Edit source definition and type of an existing package. Options are shared with add-package-tito.
+Deprecated by SCM source type.
 
 
 `copr-cli add-package-pypi [options]`
@@ -458,7 +505,7 @@ usage: copr add-package-mockscm [-h] [--scm-type TYPE] [--scm-url URL]
                                 PKGNAME [--webhook-rebuild {on,off}]
                                 project
 
-Add package of 'MockSCM' source type.
+Deprecated by SCM source type.
 
 --scm-type TYPE::
 Specify versioning tool, default is 'git'
@@ -487,7 +534,55 @@ usage: copr edit-package-mockscm [-h] [--scm-type TYPE] [--scm-url URL]
                                 PKGNAME [--webhook-rebuild {on,off}]
                                 project
 
-Edit source definition and type of an existing package. Options are shared with add-package-mockscm.
+Deprecated by SCM source type.
+
+
+`copr-cli add-package-scm [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr add-package-scm [-h] --clone-url CLONE_URL [--commit COMMITTISH]
+                            [--subdir SUBDIRECTORY] [--spec SPEC]
+                            [--type {git,svn}]
+                            [--method {rpkg,tito,tito_test,make_srpm}] --name
+                            PKGNAME [--webhook-rebuild {on,off}]
+                            copr
+
+Add package of SCM source type.
+
+--clone-url CLONE_URL::
+clone url to a project versioned by Git or SVN, required
+
+--commit COMMITISH::
+branch name, tag name, or git hash to be built
+
+--subdir SUBDIRECTORY::
+relative path from the repo root to the package content
+
+--spec SPEC::
+relative path from the subdirectory to the .spec file
+
+--type TYPE::
+Specify versioning tool. Default is 'git'.
+
+--method METHOD::
+Srpm build method. Default is 'rpkg'.
+
+--name PKGNAME::
+Name of the package to be edited or created
+
+--webhook-rebuild {on,off}::
+Enable auto-rebuilding
+
+
+`copr-cli edit-package-scm [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr edit-package-scm [-h] --clone-url CLONE_URL [--commit COMMITTISH]
+                             [--subdir SUBDIRECTORY] [--spec SPEC]
+                             [--type {git,svn}]
+                             [--method {rpkg,tito,tito_test,make_srpm}] --name
+                             PKGNAME [--webhook-rebuild {on,off}]
+                             copr
+
+Edit package of SCM source type.
 
 
 `copr-cli add-package-rubygems [options]`
